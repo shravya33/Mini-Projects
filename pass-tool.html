@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Tool</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 500px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #2d3748;
+        }
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: -1px;
+        }
+        .tab {
+            padding: 12px 25px;
+            cursor: pointer;
+            background: #e2e8f0;
+            border: 1px solid #cbd5e0;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .tab.active {
+            background: #4a5568;
+            color: white;
+            border-color: #4a5568;
+        }
+        .tab-content {
+            display: none;
+            padding: 25px;
+            border: 1px solid #cbd5e0;
+            background: white;
+            border-radius: 0 5px 5px 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        label {
+            display: block;
+            margin: 15px 0 5px;
+            font-weight: 500;
+        }
+        input {
+            padding: 10px;
+            margin: 5px 0 15px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            padding: 12px;
+            margin: 10px 0;
+            width: 100%;
+            box-sizing: border-box;
+            background: #4a5568;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #2d3748;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+        .progress-container {
+            margin-top: 15px;
+        }
+        .progress {
+            height: 8px;
+            background: #edf2f7;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: #e53e3e;
+            width: 0%;
+            transition: width 0.3s, background 0.3s;
+        }
+        .password-container {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .password-container input {
+            margin: 0;
+            flex-grow: 1;
+        }
+        .password-container button {
+            margin: 0;
+            width: auto;
+            padding: 0 15px;
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        .strength-text {
+            font-weight: 600;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Password Security Tool</h1>
+    
+    <div class="tabs">
+        <div class="tab active" id="generate-tab">Generate</div>
+        <div class="tab" id="check-tab">Check Strength</div>
+    </div>
+    
+    <div id="generate-content" class="tab-content active">
+        <label for="length">Password Length (8-32):</label>
+        <input type="number" id="length" min="8" max="32" value="16">
+        
+        <button id="generateBtn">Generate Password</button>
+        
+        <div class="result">
+            <label>Your Password:</label>
+            <div class="password-container">
+                <input type="text" id="generatedPassword" readonly>
+                <button id="copyPassword">Copy</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="check-content" class="tab-content">
+        <label for="passwordToCheck">Enter Password:</label>
+        <div class="password-container">
+            <input type="password" id="passwordToCheck" placeholder="Type your password">
+            <button id="togglePassword">Show</button>
+        </div>
+        
+        <button id="checkBtn">Check Strength</button>
+        
+        <div class="result">
+            <div class="progress-container">
+                <label>Password Strength:</label>
+                <div class="strength-text" id="strengthResult">Not checked</div>
+                <div class="progress">
+                    <div id="strengthProgress" class="progress-bar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        document.getElementById('generate-tab').addEventListener('click', function() {
+            document.getElementById('generate-content').classList.add('active');
+            document.getElementById('check-content').classList.remove('active');
+            this.classList.add('active');
+            document.getElementById('check-tab').classList.remove('active');
+        });
+
+        document.getElementById('check-tab').addEventListener('click', function() {
+            document.getElementById('check-content').classList.add('active');
+            document.getElementById('generate-content').classList.remove('active');
+            this.classList.add('active');
+            document.getElementById('generate-tab').classList.remove('active');
+        });
+
+        // Toggle password visibility
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordField = document.getElementById('passwordToCheck');
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                this.textContent = 'Hide';
+            } else {
+                passwordField.type = 'password';
+                this.textContent = 'Show';
+            }
+        });
+
+        // Generate password
+        document.getElementById('generateBtn').addEventListener('click', function() {
+            const length = document.getElementById('length').value;
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                password += chars[Math.floor(Math.random() * chars.length)];
+            }
+            document.getElementById('generatedPassword').value = password;
+        });
+
+        // Copy password
+        document.getElementById('copyPassword').addEventListener('click', function() {
+            const passwordField = document.getElementById('generatedPassword');
+            passwordField.select();
+            document.execCommand('copy');
+            
+            // Visual feedback
+            const originalText = this.textContent;
+            this.textContent = 'Copied!';
+            this.style.background = '#48bb78';
+            setTimeout(() => {
+                this.textContent = originalText;
+                this.style.background = '#e2e8f0';
+            }, 1500);
+        });
+
+        // Check password strength
+        document.getElementById('checkBtn').addEventListener('click', function() {
+            const password = document.getElementById('passwordToCheck').value;
+            const resultElement = document.getElementById('strengthResult');
+            const progressBar = document.getElementById('strengthProgress');
+            
+            let strength = 0;
+            const messages = [];
+            
+            // Length checks
+            if (password.length >= 8) strength += 1;
+            if (password.length >= 12) strength += 1;
+            if (password.length >= 16) strength += 1;
+            
+            // Character type checks
+            if (/[A-Z]/.test(password)) strength += 1;
+            if (/[a-z]/.test(password)) strength += 1;
+            if (/[0-9]/.test(password)) strength += 1;
+            if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+            
+            // Determine strength level
+            if (strength >= 6) {
+                resultElement.textContent = "Very Strong";
+                resultElement.style.color = "#38a169";
+                progressBar.style.width = '100%';
+                progressBar.style.backgroundColor = '#38a169';
+            } else if (strength >= 4) {
+                resultElement.textContent = "Strong";
+                resultElement.style.color = "#48bb78";
+                progressBar.style.width = '75%';
+                progressBar.style.backgroundColor = '#48bb78';
+            } else if (strength >= 3) {
+                resultElement.textContent = "Medium";
+                resultElement.style.color = "#ed8936";
+                progressBar.style.width = '50%';
+                progressBar.style.backgroundColor = '#ed8936';
+            } else if (strength >= 1) {
+                resultElement.textContent = "Weak";
+                resultElement.style.color = "#e53e3e";
+                progressBar.style.width = '25%';
+                progressBar.style.backgroundColor = '#e53e3e';
+            } else {
+                resultElement.textContent = "Very Weak";
+                resultElement.style.color = "#c53030";
+                progressBar.style.width = '10%';
+                progressBar.style.backgroundColor = '#c53030';
+            }
+        });
+    </script>
+</body>
+</html>
